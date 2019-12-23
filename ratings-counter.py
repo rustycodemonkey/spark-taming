@@ -1,10 +1,15 @@
-from pyspark import SparkConf, SparkContext
+from pyspark.sql import SparkSession
+from pyspark.conf import SparkConf
 import collections
 
-conf = SparkConf().setMaster("local").setAppName("RatingsHistogram")
-sc = SparkContext(conf = conf)
+conf = SparkConf().setAppName("RatingsHistogram")
+spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
-lines = sc.textFile("file:///SparkCourse/ml-100k/u.data")
+sc = spark.sparkContext
+# sc.setLogLevel("INFO")
+
+lines = sc.textFile("s3a://mypersonaldumpingground/ml-100k/u.data")
+
 ratings = lines.map(lambda x: x.split()[2])
 result = ratings.countByValue()
 
