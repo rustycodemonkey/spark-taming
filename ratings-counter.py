@@ -7,7 +7,7 @@ spark = SparkSession.builder.getOrCreate()
 sc = spark.sparkContext
 # sc.setLogLevel("INFO")
 
-lines = sc.textFile("s3a://mypersonaldumpingground/ml-100k/u.data")
+lines = sc.textFile("s3a://mypersonaldumpingground/spark_taming_data/ml-100k/u.data")
 print(type(lines))
 ratings = lines.map(lambda x: x.split()[2])
 print(type(ratings))
