@@ -1,5 +1,4 @@
 from pyspark.sql import SparkSession
-import smart_open
 
 # Use existing Databricks Connect session
 # Note: Cannot modify existing SparkConf
@@ -61,6 +60,7 @@ print(str(mostPopularName, 'utf-8', 'ignore') + " is the most popular superhero,
 # Another way to get max value from pair rdd
 # examplerdd = sc.parallelize([(1, 100), (2, 50), (3, 10)])
 # print(examplerdd.max(lambda x: x[0]))
+# print(examplerdd.count())
 
 ### Original Example ###
 # from pyspark import SparkConf, SparkContext
