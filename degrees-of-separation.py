@@ -34,7 +34,7 @@ def convertToBFS(line):
         # Gray = Needs to be expanded
         color = 'GRAY'
         distance = 0
-
+    # (1234, ([1, 2, 3, 4, 5], 9999, WHITE))
     return heroID, (connections, distance, color)
 
 
