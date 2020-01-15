@@ -28,6 +28,7 @@ lines = sc.textFile("s3a://mypersonaldumpingground/spark_taming_data/fakefriends
 rdd = lines.map(parseLine)
 print(rdd.take(5))
 
+# Note: The task is to calculate the average number of friends by age
 totalsByAge = rdd.mapValues(lambda x: (x, 1)).reduceByKey(lambda x, y: (x[0] + y[0], x[1] + y[1]))
 print(totalsByAge.take(5))
 

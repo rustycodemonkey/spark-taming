@@ -8,6 +8,7 @@ sc = spark.sparkContext
 # sc.setLogLevel("INFO")
 
 def normalizeWords(text):
+    # Break up text on words \W+
     return re.compile(r'\W+', re.UNICODE).split(text.lower())
 
 input = sc.textFile("s3a://mypersonaldumpingground/spark_taming_data/Book.txt")

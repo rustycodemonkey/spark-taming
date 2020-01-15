@@ -15,6 +15,7 @@ input = sc.textFile("s3a://mypersonaldumpingground/spark_taming_data/Book.txt")
 words = input.flatMap(normalizeWords)
 
 wordCounts = words.map(lambda x: (x, 1)).reduceByKey(lambda x, y: x + y)
+# Flip Key Value and then use sortByKey
 wordCountsSorted = wordCounts.map(lambda x: (x[1], x[0])).sortByKey()
 results = wordCountsSorted.collect()
 

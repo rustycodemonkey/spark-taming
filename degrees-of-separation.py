@@ -25,10 +25,13 @@ def convertToBFS(line):
     for connection in fields[1:]:
         connections.append(int(connection))
 
+    # White = Unprocessed
     color = 'WHITE'
+    # 9999 is like infinite distance
     distance = 9999
 
     if heroID == startCharacterID:
+        # Gray = Needs to be expanded
         color = 'GRAY'
         distance = 0
 
