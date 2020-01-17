@@ -1,30 +1,49 @@
 import sys
-from pyspark import SparkConf, SparkContext
+from pyspark.sql import SparkSession
 from math import sqrt
 import smart_open
 
-#To run on EMR successfully + output results for Star Wars:
-#aws s3 cp s3://sundog-spark/MovieSimilarities1M.py ./
-#aws s3 sp c3://sundog-spark/ml-1m/movies.dat ./
-#spark-submit --executor-memory 1g MovieSimilarities1M.py 260
+
+# To run on EMR successfully + output results for Star Wars:
+# aws s3 cp s3://sundog-spark/MovieSimilarities1M.py ./
+# aws s3 sp c3://sundog-spark/ml-1m/movies.dat ./
+# spark-submit --executor-memory 1g MovieSimilarities1M.py 260
 
 def loadMovieNames():
     movieNames = {}
     with smart_open.open("s3a://mypersonaldumpingground/spark_taming_data/ml-1m/movies.dat", encoding='iso8859-1') as f:
         for line in f:
             fields = line.split("::")
-            movieNames[int(fields[0])] = fields[1].decode('ascii', 'ignore')
+            movieNames[int(fields[0])] = fields[1]
     return movieNames
 
-def makePairs((user, ratings)):
+
+# def makePairs((user, ratings)):
+#     (movie1, rating1) = ratings[0]
+#     (movie2, rating2) = ratings[1]
+#     return ((movie1, movie2), (rating1, rating2))
+#
+# def filterDuplicates( (userID, ratings) ):
+#     (movie1, rating1) = ratings[0]
+#     (movie2, rating2) = ratings[1]
+#     return movie1 < movie2
+
+
+# Python 3 doesn't let you pass around unpacked tuples,
+# so we explicitly extract the ratings now.
+def makePairs(userRatings):
+    ratings = userRatings[1]
     (movie1, rating1) = ratings[0]
     (movie2, rating2) = ratings[1]
     return ((movie1, movie2), (rating1, rating2))
 
-def filterDuplicates( (userID, ratings) ):
+
+def filterDuplicates(userRatings):
+    ratings = userRatings[1]
     (movie1, rating1) = ratings[0]
     (movie2, rating2) = ratings[1]
     return movie1 < movie2
+
 
 def computeCosineSimilarity(ratingPairs):
     numPairs = 0
@@ -45,8 +64,8 @@ def computeCosineSimilarity(ratingPairs):
     return (score, numPairs)
 
 
-conf = SparkConf()
-sc = SparkContext(conf = conf)
+spark = SparkSession.builder.getOrCreate()
+sc = spark.sparkContext
 
 print("\nLoading movie names...")
 nameDict = loadMovieNames()
@@ -78,8 +97,8 @@ moviePairRatings = moviePairs.groupByKey()
 moviePairSimilarities = moviePairRatings.mapValues(computeCosineSimilarity).persist()
 
 # Save the results if desired
-moviePairSimilarities.sortByKey()
-moviePairSimilarities.saveAsTextFile("movie-sims")
+# moviePairSimilarities.sortByKey()
+# moviePairSimilarities.saveAsTextFile("movie-sims")
 
 # Extract similarities for the movie we care about that are "good".
 if (len(sys.argv) > 1):
@@ -91,12 +110,17 @@ if (len(sys.argv) > 1):
 
     # Filter for movies with this sim that are "good" as defined by
     # our quality thresholds above
-    filteredResults = moviePairSimilarities.filter(lambda((pair,sim)): \
-        (pair[0] == movieID or pair[1] == movieID) \
-        and sim[0] > scoreThreshold and sim[1] > coOccurenceThreshold)
+    # filteredResults = moviePairSimilarities.filter(lambda ((pair, sim)): \
+    #                                                    (pair[0] == movieID or pair[1] == movieID) \
+    #                                                    and sim[0] > scoreThreshold and sim[1] > coOccurenceThreshold)
+    filteredResults = moviePairSimilarities.filter(
+        lambda pairSim: (pairSim[0][0] == movieID or pairSim[0][1] == movieID) and pairSim[1][0] > scoreThreshold and
+                        pairSim[1][1] > coOccurenceThreshold)
 
     # Sort by quality score.
-    results = filteredResults.map(lambda((pair,sim)): (sim, pair)).sortByKey(ascending = False).take(10)
+    # results = filteredResults.map(lambda ((pair, sim)): (sim, pair)).sortByKey(ascending=False).take(10)
+    results = filteredResults.map(lambda pairSim: (pairSim[1], pairSim[0])).sortByKey(ascending=False).take(100)
+    print(results)
 
     print("Top 10 similar movies for " + nameDict[movieID])
     for result in results:
@@ -106,7 +130,6 @@ if (len(sys.argv) > 1):
         if (similarMovieID == movieID):
             similarMovieID = pair[1]
         print(nameDict[similarMovieID] + "\tscore: " + str(sim[0]) + "\tstrength: " + str(sim[1]))
-
 
 ### Original Example ###
 # import sys

@@ -115,7 +115,7 @@ if (len(sys.argv) > 1):
                         pairSim[1][1] > coOccurenceThreshold)
 
     # Sort by quality score.
-    results = filteredResults.map(lambda pairSim: (pairSim[1], pairSim[0])).sortByKey(ascending=False).take(100)
+    results = filteredResults.map(lambda pairSim: (pairSim[1], pairSim[0])).sortByKey(ascending=False).take(10)
     print(results)
 
     print("Top 10 similar movies for " + nameDict[movieID])
