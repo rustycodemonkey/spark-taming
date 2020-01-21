@@ -35,7 +35,7 @@ ratings = data.map(lambda l: l.split()).map(lambda l: Rating(int(l[0]), int(l[1]
 print("\nTraining recommendation model...")
 rank = 10
 # Lowered numIterations to ensure it works on lower-end systems
-numIterations = 10
+numIterations = 30
 model = ALS.train(ratings, rank, numIterations)
 
 userID = int(sys.argv[1])
