@@ -3,7 +3,7 @@ from pyspark.sql import Row
 import collections
 
 # Use existing Databricks Connect session
-spark = SparkSession.builder.appName("XXXTESTXXX").getOrCreate()
+spark = SparkSession.builder.getOrCreate()
 
 
 def mapper(line):
@@ -23,7 +23,9 @@ lines = spark.sparkContext.textFile("s3a://mypersonaldumpingground/spark_taming_
 people = lines.map(mapper)
 
 # Infer the schema, and register the DataFrame as a table.
-schemaPeople = spark.createDataFrame(people).cache()
+# schemaPeople = spark.createDataFrame(people).cache()
+# Databricks limitations with df.cache()
+schemaPeople = spark.createDataFrame(people)
 schemaPeople.createOrReplaceTempView("people")
 
 # SQL can be run over DataFrames that have been registered as a table.
@@ -34,6 +36,11 @@ for teen in teenagers.collect():
     print(teen)
 
 # We can also use functions instead of SQL queries:
+
+# schemaPeople.groupBy("age").count().orderBy("age").show()
+print(type(schemaPeople.groupBy("age")))
+print(type(schemaPeople.groupBy("age").count()))
+print(type(schemaPeople.groupBy("age").count().orderBy("age")))
 schemaPeople.groupBy("age").count().orderBy("age").show()
 
 spark.stop()
