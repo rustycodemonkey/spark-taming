@@ -20,7 +20,7 @@ sc = spark.sparkContext
 # sc.setLogLevel("INFO")
 
 # Databricks needs absolute checkpoint directory
-sc.setCheckpointDir('/checkpoint')
+sc.setCheckpointDir('/spark_taming_temp/checkpoint')
 
 print("\nLoading movie names...")
 nameDict = loadMovieNames()
@@ -35,7 +35,7 @@ ratings = data.map(lambda l: l.split()).map(lambda l: Rating(int(l[0]), int(l[1]
 print("\nTraining recommendation model...")
 rank = 10
 # Lowered numIterations to ensure it works on lower-end systems
-numIterations = 30
+numIterations = 6
 model = ALS.train(ratings, rank, numIterations)
 
 userID = int(sys.argv[1])
